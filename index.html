@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#15120e">
+<title>Mi Mapa Personal</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #15120e;
+  --surf: #1e1a14;
+  --surf2: #26211a;
+  --surf3: #2e2820;
+  --border: #3c3428;
+  --border2: #4a4035;
+  --accent: #c8a96e;
+  --accent2: #e0c898;
+  --accent-dim: rgba(200,169,110,0.12);
+  --txt: #e4dbd0;
+  --txt2: #9a8f82;
+  --txt3: #635c52;
+  --success: #7aab7a;
+  --success-dim: rgba(122,171,122,0.15);
+  --blue-dim: rgba(100,150,220,0.12);
+  --blue: #7aabdc;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; overflow:hidden; background:var(--bg); }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  color: var(--txt);
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* SCREENS */
+#app { flex:1; overflow:hidden; position:relative; }
+.screen {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 0 0 80px;
+  opacity: 0; pointer-events: none;
+  transform: translateX(20px);
+  transition: opacity .25s ease, transform .25s ease;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active { opacity:1; pointer-events:all; transform:translateX(0); }
+
+/* HEADER */
+.screen-header {
+  padding: 52px 20px 20px;
+  background: linear-gradient(to bottom, var(--bg) 70%, transparent);
+  position: sticky; top: 0; z-index: 10;
+}
+.screen-header h1 {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 24px; font-weight: 600;
+  color: var(--txt); line-height: 1.2;
+}
+.screen-header p {
+  font-size: 13px; color: var(--txt2);
+  margin-top: 4px; font-weight: 300;
+}
+
+/* BOTTOM NAV */
+#nav {
+  display: flex;
+  background: var(--surf);
+  border-top: 0.5px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  flex-shrink: 0;
+  position: relative; z-index: 20;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+  padding: 10px 0 12px;
+  background: none; border: none; cursor: pointer;
+  color: var(--txt3); font-family: inherit;
+  transition: color .15s;
+}
+.nav-btn .nav-icon { font-size: 20px; line-height: 1; }
+.nav-btn .nav-label { font-size: 10px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+.nav-btn.active { color: var(--accent); }
+
+/* CARDS */
+.card {
+  background: var(--surf);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 0 16px 10px;
+}
+.card-sm {
+  background: var(--surf2);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+/* MAPA SCREEN */
+.section-label {
+  font-size: 10px; font-weight: 500; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--txt3);
+  margin: 0 20px 10px;
+}
+.arrow-section {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin: 4px 0 12px;
+  color: var(--txt3); font-size: 13px;
+}
+.arrow-section::before, .arrow-section::after {
+  content:''; flex:1; height:0.5px; background:var(--border);
+}
+.cause-grid { display:flex; flex-direction:column; gap:6px; padding:0 16px; }
+.cause-tag {
+  background: var(--surf2); border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 8px 12px;
+  font-size: 13px; color: var(--txt2); line-height: 1.4;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.emo-badge {
+  font-size: 10px; padding: 2px 7px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0; font-weight: 500;
+}
+.emo-t { background: rgba(100,150,220,0.15); color: var(--blue); }
+.emo-c { background: rgba(200,169,110,0.15); color: var(--accent); }
+.emo-tc { background: rgba(160,140,200,0.15); color: #b0a0dc; }
+
+.belief-card {
+  background: var(--surf2); border: 0.5px solid var(--border2);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 8px;
+}
+.belief-quote {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic; font-size: 15px;
+  color: var(--txt); margin-bottom: 6px;
+}
+.belief-sub { font-size: 12px; color: var(--txt3); line-height: 1.4; }
+
+.conduct-card {
+  background: var(--surf); border-radius: 14px;
+  border: 0.5px solid var(--border); padding: 14px 16px; margin-bottom: 8px;
+}
+.conduct-card.highlight { border-color: var(--accent-dim); background: var(--accent-dim); }
+.conduct-title { font-size: 14px; font-weight: 500; color: var(--txt); margin-bottom: 4px; }
+.conduct-desc { font-size: 12px; color: var(--txt2); line-height: 1.5; }
+.conduct-badge {
+  display: inline-block; font-size: 10px; padding: 2px 8px;
+  background: rgba(200,169,110,0.2); color: var(--accent);
+  border-radius: 20px; margin-bottom: 6px; font-weight: 500;
+}
+
+.emo-chips { display:flex; flex-wrap:wrap; gap:8px; padding:0 16px; }
+.emo-chip {
+  padding: 7px 14px; border-radius: 20px;
+  border: 0.5px solid var(--border2);
+  background: var(--surf2); font-size: 13px; color: var(--txt2);
+}
+
+/* ESTRATEGIAS SCREEN */
+.strategy {
+  background: var(--surf); border: 0.5px solid var(--border);
+  border-radius: 16px; margin: 0 16px 10px; overflow:hidden;
+  transition: border-color .2s;
+}
+.strategy.open { border-color: var(--border2); }
+.strategy-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px; cursor: pointer; background: none; border: none;
+  width: 100%; text-align: left; color: var(--txt); font-family: inherit;
+}
+.s-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surf2); border: 0.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 500; color: var(--accent);
+  flex-shrink: 0;
+}
+.s-head-text { flex:1; }
+.s-head-title { font-size: 14px; font-weight: 500; color: var(--txt); }
+.s-head-sub { font-size: 12px; color: var(--txt3); margin-top: 2px; }
+.s-chevron { font-size: 12px; color: var(--txt3); transition: transform .2s; }
+.strategy.open .s-chevron { transform: rotate(180deg); }
+.strategy-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height .3s ease;
+}
+.strategy-body-inner {
+  padding: 0 16px 16px;
+  border-top: 0.5px solid var(--border);
+  margin-top: 0;
+}
+.s-item {
+  display: flex; gap: 10px;
+  padding: 10px 0; border-bottom: 0.5px solid var(--border);
+  font-size: 13px; color: var(--txt2); line-height: 1.5;
+}
+.s-item:last-child { border-bottom:none; }
+.s-dot { color: var(--accent); flex-shrink:0; margin-top:1px; }
+.s-item em { color: var(--txt); font-style: normal; font-weight: 500; }
+
+/* HOY SCREEN */
+.date-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surf2); border: 0.5px solid var(--border);
+  border-radius: 20px; padding: 6px 12px;
+  font-size: 12px; color: var(--txt2); margin: 0 20px 16px;
+}
+
+.progress-card {
+  background: var(--surf); border: 0.5px solid var(--border);
+  border-radius: 16px; padding: 16px; margin: 0 16px 16px;
+}
+.progress-header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+.progress-label { font-size: 13px; color: var(--txt2); }
+.progress-count { font-size: 22px; font-weight: 600; font-family:'Lora',serif; color: var(--txt); }
+.progress-bar-bg {
+  height: 6px; background: var(--surf2); border-radius: 3px; overflow:hidden;
+}
+.progress-bar-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 3px; transition: width .4s ease;
+}
+.progress-msg { font-size: 12px; color: var(--txt3); margin-top: 8px; }
+
+.check-group {
+  background: var(--surf); border: 0.5px solid var(--border);
+  border-radius: 16px; margin: 0 16px 10px; overflow:hidden;
+}
+.check-group-header {
+  padding: 12px 16px;
+  font-size: 11px; font-weight: 500; letter-spacing:.08em;
+  text-transform: uppercase; color: var(--txt3);
+  border-bottom: 0.5px solid var(--border);
+}
+.check-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px; cursor: pointer;
+  border-bottom: 0.5px solid var(--border);
+  transition: background .15s;
+  -webkit-user-select: none; user-select: none;
+}
+.check-row:last-child { border-bottom: none; }
+.check-row:active { background: var(--surf2); }
+.check-box {
+  width: 22px; height: 22px; flex-shrink:0;
+  border: 1.5px solid var(--border2); border-radius: 6px;
+  background: var(--surf2);
+  display: flex; align-items:center; justify-content:center;
+  transition: all .2s; margin-top: 1px;
+}
+.check-box.done {
+  background: var(--success-dim);
+  border-color: var(--success);
+}
+.check-box svg { opacity:0; transition:opacity .15s; }
+.check-box.done svg { opacity:1; }
+.check-text { font-size: 14px; color: var(--txt2); line-height: 1.5; flex:1; transition: color .2s; }
+.check-text.done { color: var(--txt3); text-decoration: line-through; text-decoration-color: var(--txt3); }
+
+.reset-btn {
+  display: block; width: calc(100% - 32px); margin: 16px auto 0;
+  padding: 10px; border-radius: 12px;
+  background: none; border: 0.5px solid var(--border);
+  color: var(--txt3); font-size: 13px; font-family: inherit; cursor: pointer;
+  transition: all .15s;
+}
+.reset-btn:active { background: var(--surf2); }
+
+/* SPACER */
+.spacer { height: 24px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- SCREEN: MAPA -->
+  <div class="screen active" id="s-mapa">
+    <div class="screen-header">
+      <h1>Mi Mapa Personal</h1>
+      <p>Causas · Creencias · Conductas · Emociones</p>
+    </div>
+
+    <div class="section-label">Causas</div>
+    <div class="cause-grid">
+      <div class="cause-tag">Acoso escolar y en el pueblo <span class="emo-badge emo-t">tristeza</span></div>
+      <div class="cause-tag">Autoimagen insegura <span class="emo-badge emo-t">tristeza</span></div>
+      <div class="cause-tag">Acoso a mi madre <span class="emo-badge emo-t">tristeza</span></div>
+      <div class="cause-tag">Relación con padres <span class="emo-badge emo-t">tristeza</span></div>
+      <div class="cause-tag">Primeras experiencias afectivas <span class="emo-badge emo-t">tristeza</span></div>
+      <div class="cause-tag">Primera relación seria <span class="emo-badge emo-tc">tristeza · culpa</span></div>
+      <div class="cause-tag">Desengaños amistosos <span class="emo-badge emo-tc">tristeza · culpa</span></div>
+      <div class="cause-tag">Insatisfacción laboral por amor <span class="emo-badge emo-c">culpa</span></div>
+      <div class="cause-tag">Falta de pertenencia social <span class="emo-badge emo-c">culpa</span></div>
+    </div>
+
+    <div class="arrow-section">↓ generan</div>
+
+    <div class="section-label">Creencias nucleares</div>
+    <div style="padding:0 16px">
+      <div class="belief-card">
+        <div class="belief-quote">"Te mereces estar solo"</div>
+        <div class="belief-sub">Autocastigo → tendencia al aislamiento</div>
+      </div>
+      <div class="belief-card">
+        <div class="belief-quote">"No eres suficiente"</div>
+        <div class="belief-sub">Autocrítica → inseguridad constante</div>
+      </div>
+      <div class="belief-card">
+        <div class="belief-quote">"Me van a abandonar"</div>
+        <div class="belief-sub">Miedo → independencia exagerada y dificultad para depender</div>
+      </div>
+      <div class="belief-card">
+        <div class="belief-quote">"Quiero que me quieran"</div>
+        <div class="belief-sub">Necesidad de afecto → dificultad para pedirlo directamente</div>
+      </div>
+    </div>
+
+    <div class="arrow-section">↓ producen</div>
+
+    <div class="section-label">Conductas</div>
+    <div style="padding:0 16px">
+      <div class="conduct-card highlight">
+        <div class="conduct-badge">⚡ Foco principal</div>
+        <div class="conduct-title">Dificultad para discutir</div>
+        <div class="conduct-desc">No logro expresarme bien en momentos de tensión. Me cierro o digo cosas que no debo sin escuchar primero.</div>
+      </div>
+      <div class="conduct-card">
+        <div class="conduct-title">Dificultad para expresarme</div>
+        <div class="conduct-desc">Me cuesta poner en palabras lo que siento o necesito antes de que sea demasiado tarde.</div>
+      </div>
+      <div class="conduct-card">
+        <div class="conduct-title">Exagerada independencia</div>
+        <div class="conduct-desc">Individualismo y miedo a depender. Pienso en mí sin considerar cómo se siente la otra persona.</div>
+      </div>
+      <div class="conduct-card">
+        <div class="conduct-title">Egoísmo · Pasotismo</div>
+        <div class="conduct-desc">Tendencia a desconectarme del entorno emocional de los demás.</div>
+      </div>
+    </div>
+
+    <div class="arrow-section">↓ provocan</div>
+
+    <div class="section-label">Emociones resultantes</div>
+    <div class="emo-chips">
+      <span class="emo-chip">😔 Soledad</span>
+      <span class="emo-chip">😢 Tristeza</span>
+      <span class="emo-chip">😠 Enfado</span>
+      <span class="emo-chip">😟 Culpa</span>
+      <span class="emo-chip">😰 Incertidumbre</span>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- SCREEN: ESTRATEGIAS -->
+  <div class="screen" id="s-estrategias">
+    <div class="screen-header">
+      <h1>Cómo discutir mejor</h1>
+      <p>Estrategias para el momento de tensión</p>
+    </div>
+
+    <div class="strategy" id="st0">
+      <button class="strategy-head" onclick="toggleStrategy(0)">
+        <div class="s-num">⏸</div>
+        <div class="s-head-text">
+          <div class="s-head-title">Para antes de responder</div>
+          <div class="s-head-sub">El freno de emergencia</div>
+        </div>
+        <div class="s-chevron">▾</div>
+      </button>
+      <div class="strategy-body">
+        <div class="strategy-body-inner">
+          <div class="s-item"><span class="s-dot">·</span><span>Cuando notes que subes el tono o quieres soltar algo, haz una <em>pausa física</em>: 3 respiraciones o di "dame un segundo".</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>El objetivo <em>no es ganar</em>. Es entenderos.</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>La urgencia de responder ya es la señal de que necesitas parar.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="strategy" id="st1">
+      <button class="strategy-head" onclick="toggleStrategy(1)">
+        <div class="s-num">👂</div>
+        <div class="s-head-text">
+          <div class="s-head-title">Escucha antes de hablar</div>
+          <div class="s-head-sub">Escuchar para entender, no para responder</div>
+        </div>
+        <div class="s-chevron">▾</div>
+      </button>
+      <div class="strategy-body">
+        <div class="strategy-body-inner">
+          <div class="s-item"><span class="s-dot">·</span><span>Pregúntate: ¿he entendido realmente lo que me dice, o solo estoy <em>escuchando para responder</em>?</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>Repite lo que has entendido: <em>"Entiendo que lo que sientes es…"</em> Obliga a escuchar de verdad.</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>No interrumpas. Cuando quieras hacerlo, apúntalo mentalmente y espera.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="strategy" id="st2">
+      <button class="strategy-head" onclick="toggleStrategy(2)">
+        <div class="s-num">🧭</div>
+        <div class="s-head-text">
+          <div class="s-head-title">Ponerse en su lugar</div>
+          <div class="s-head-sub">El paso clave para ti</div>
+        </div>
+        <div class="s-chevron">▾</div>
+      </button>
+      <div class="strategy-body">
+        <div class="strategy-body-inner">
+          <div class="s-item"><span class="s-dot">·</span><span>Antes de contestar: <em>"¿Cómo se está sintiendo ahora mismo la otra persona?"</em></span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>¿Si yo hubiera vivido lo que ha vivido él/ella, tendría sentido que reaccionara así?</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>Tu miedo al abandono puede hacerte interpretar <em>críticas como ataques</em> cuando no lo son.</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>Separa el hecho ("me dijo X") de la interpretación ("significa que no le importo").</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="strategy" id="st3">
+      <button class="strategy-head" onclick="toggleStrategy(3)">
+        <div class="s-num">💬</div>
+        <div class="s-head-text">
+          <div class="s-head-title">Expresarte sin atacar</div>
+          <div class="s-head-sub">Lenguaje en primera persona</div>
+        </div>
+        <div class="s-chevron">▾</div>
+      </button>
+      <div class="strategy-body">
+        <div class="strategy-body-inner">
+          <div class="s-item"><span class="s-dot">·</span><span>Usa frases en primera persona: <em>"Yo me siento…"</em> en vez de <em>"Es que tú siempre…"</em></span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>Di qué necesitas, no lo que el otro hace mal.</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>Si no encuentras las palabras: <em>"Necesito unos minutos para explicarte esto bien."</em></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="strategy" id="st4">
+      <button class="strategy-head" onclick="toggleStrategy(4)">
+        <div class="s-num">🔄</div>
+        <div class="s-head-text">
+          <div class="s-head-title">Identificar la creencia activada</div>
+          <div class="s-head-sub">Conectar con el mapa</div>
+        </div>
+        <div class="s-chevron">▾</div>
+      </button>
+      <div class="strategy-body">
+        <div class="strategy-body-inner">
+          <div class="s-item"><span class="s-dot">·</span><span>Cuando sientas mucho malestar, pregúntate: <em>¿qué creencia se ha activado?</em> ("Me van a abandonar", "No soy suficiente"…)</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>Esa emoción intensa probablemente viene de algo <em>más antiguo</em> que la discusión en sí.</span></div>
+          <div class="s-item"><span class="s-dot">·</span><span>Nombrar la emoción la reduce: <em>"Estoy sintiendo miedo, no solo enfado."</em></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- SCREEN: HOY -->
+  <div class="screen" id="s-hoy">
+    <div class="screen-header">
+      <h1>Hoy</h1>
+      <p>Checklist diario · se renueva cada día</p>
+    </div>
+
+    <div class="date-badge" id="date-label">📅 —</div>
+
+    <div class="progress-card">
+      <div class="progress-header">
+        <div class="progress-label">Progreso de hoy</div>
+        <div class="progress-count" id="prog-count">0 / 10</div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="prog-bar" style="width:0%"></div>
+      </div>
+      <div class="progress-msg" id="prog-msg">Marca lo que has practicado hoy.</div>
+    </div>
+
+    <div class="check-group">
+      <div class="check-group-header">Antes de una conversación difícil</div>
+      <div class="check-row" onclick="toggle(this)" data-id="c0">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He recordado que el objetivo es entendernos, no ganar</div>
+      </div>
+      <div class="check-row" onclick="toggle(this)" data-id="c1">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">Me he preguntado cómo puede sentirse la otra persona</div>
+      </div>
+      <div class="check-row" onclick="toggle(this)" data-id="c2">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He identificado si alguna creencia mía puede distorsionar la situación</div>
+      </div>
+    </div>
+
+    <div class="check-group">
+      <div class="check-group-header">Durante la discusión</div>
+      <div class="check-row" onclick="toggle(this)" data-id="c3">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He hecho una pausa antes de responder en momentos de tensión</div>
+      </div>
+      <div class="check-row" onclick="toggle(this)" data-id="c4">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He escuchado sin interrumpir hasta que el otro terminó</div>
+      </div>
+      <div class="check-row" onclick="toggle(this)" data-id="c5">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He reflejado lo que entendí: "Entiendo que sientes…"</div>
+      </div>
+      <div class="check-row" onclick="toggle(this)" data-id="c6">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He usado "yo siento…" en vez de "tú siempre…"</div>
+      </div>
+    </div>
+
+    <div class="check-group">
+      <div class="check-group-header">Al final del día</div>
+      <div class="check-row" onclick="toggle(this)" data-id="c7">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He reconocido una emoción mía sin juzgarla (miedo, soledad, culpa…)</div>
+      </div>
+      <div class="check-row" onclick="toggle(this)" data-id="c8">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He hecho algo por mí sin depender de la aprobación de otros</div>
+      </div>
+      <div class="check-row" onclick="toggle(this)" data-id="c9">
+        <div class="check-box"><svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#7aab7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-text">He cuestionado una creencia negativa: "¿es esto realmente cierto?"</div>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetDay()">↺ Reiniciar el día</button>
+    <div class="spacer"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="nav">
+  <button class="nav-btn active" onclick="showScreen('mapa', this)">
+    <span class="nav-icon">🗺</span>
+    <span class="nav-label">Mapa</span>
+  </button>
+  <button class="nav-btn" onclick="showScreen('estrategias', this)">
+    <span class="nav-icon">💬</span>
+    <span class="nav-label">Discutir</span>
+  </button>
+  <button class="nav-btn" onclick="showScreen('hoy', this)">
+    <span class="nav-icon">✓</span>
+    <span class="nav-label">Hoy</span>
+  </button>
+</nav>
+
+<script>
+// --- NAVIGATION ---
+function showScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// --- STRATEGIES ACCORDION ---
+function toggleStrategy(i) {
+  const el = document.getElementById('st' + i);
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.strategy').forEach(s => {
+    s.classList.remove('open');
+    s.querySelector('.strategy-body').style.maxHeight = '0';
+  });
+  if (!isOpen) {
+    el.classList.add('open');
+    const body = el.querySelector('.strategy-body');
+    body.style.maxHeight = body.scrollHeight + 'px';
+  }
+}
+
+// --- CHECKLIST with localStorage ---
+const TOTAL = 10;
+
+function getTodayKey() {
+  const d = new Date();
+  return 'checks_' + d.getFullYear() + '_' + (d.getMonth()+1) + '_' + d.getDate();
+}
+
+function loadChecks() {
+  const key = getTodayKey();
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : {};
+  } catch(e) { return {}; }
+}
+
+function saveChecks(state) {
+  try { localStorage.setItem(getTodayKey(), JSON.stringify(state)); } catch(e) {}
+}
+
+function updateProgress() {
+  const state = loadChecks();
+  const done = Object.values(state).filter(Boolean).length;
+  const pct = Math.round((done / TOTAL) * 100);
+  document.getElementById('prog-count').textContent = done + ' / ' + TOTAL;
+  document.getElementById('prog-bar').style.width = pct + '%';
+  const msgs = [
+    'Marca lo que has practicado hoy.',
+    'Buen comienzo. Cada pequeño paso cuenta.',
+    'Vas bien. Sigue así.',
+    'Más de la mitad. Estás trabajando en ello.',
+    'Casi todo. Un gran día de trabajo.',
+    '¡Todo hecho! Hoy has puesto mucho de tu parte.'
+  ];
+  const idx = done === 0 ? 0 : done <= 2 ? 1 : done <= 4 ? 2 : done <= 6 ? 3 : done <= 9 ? 4 : 5;
+  document.getElementById('prog-msg').textContent = msgs[idx];
+}
+
+function toggle(row) {
+  const id = row.dataset.id;
+  const box = row.querySelector('.check-box');
+  const txt = row.querySelector('.check-text');
+  const state = loadChecks();
+  state[id] = !state[id];
+  saveChecks(state);
+  if (state[id]) {
+    box.classList.add('done');
+    txt.classList.add('done');
+  } else {
+    box.classList.remove('done');
+    txt.classList.remove('done');
+  }
+  updateProgress();
+}
+
+function resetDay() {
+  try { localStorage.removeItem(getTodayKey()); } catch(e) {}
+  document.querySelectorAll('.check-box').forEach(b => b.classList.remove('done'));
+  document.querySelectorAll('.check-text').forEach(t => t.classList.remove('done'));
+  updateProgress();
+}
+
+function renderDateLabel() {
+  const d = new Date();
+  const days = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('date-label').textContent = '📅 ' + days[d.getDay()] + ' ' + d.getDate() + ' de ' + months[d.getMonth()];
+}
+
+function initChecks() {
+  const state = loadChecks();
+  document.querySelectorAll('.check-row').forEach(row => {
+    const id = row.dataset.id;
+    if (state[id]) {
+      row.querySelector('.check-box').classList.add('done');
+      row.querySelector('.check-text').classList.add('done');
+    }
+  });
+  updateProgress();
+}
+
+renderDateLabel();
+initChecks();
+</script>
+</body>
+</html>
